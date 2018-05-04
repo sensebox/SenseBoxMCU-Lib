@@ -42,15 +42,15 @@ class TSL45315
 		unsigned long getIlluminance(void); 
 };
 
-//-----Ultraschall Distanz Sensor HC-S04----//
-class Ultrasonic
+class HCSR04
 {
   public:
-    Ultrasonic(int rx, int tx);
-		long getDistance(void);
+    HCSR04(int rx, int tx);
+    void begin();
+	long getDistance(void);
   private:
-    int _rx;//pin of rx pin
-    int _tx;//pin of tx pin
+    int _rx;
+    int _tx;
 };
 
 class BMX055
@@ -167,14 +167,4 @@ private:
 //SD Bee   [1]
 //GPS      [2]
 //SDS011   [2]
-//BME680x  [3]
-
-//trivial: 
-//Piezo
-//Button onboard and external
-//LDR
-//Poti
-//LED
-//RGB LED
-//OLED
-//Micro
+//BME680   [3]

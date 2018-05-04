@@ -329,6 +329,37 @@ void BMX055::getRotation(int *x, int *y, int *z){
 	*z = zGyro;
 }
 
+HCSR04::HCSR04(int trigger, int echo)
+{
+	_rx = echo;
+	_tx = trigger;
+}
+
+void HCSR04::begin()
+{
+	pinMode(_rx, INPUT);
+	pinMode(_tx, OUTPUT);
+	digitalWrite(_tx, HIGH); 
+}
+
+/*The measured distance from the range 0 to 400 Centimeters*/
+long HCSR04::getDistance(void)
+{
+	long duration;
+	long distance;
+
+	digitalWrite(_tx, LOW);
+	delayMicroseconds(3);
+	noInterrupts();
+	digitalWrite(_tx, HIGH);
+	delayMicroseconds(10);
+	digitalWrite(_tx,LOW);
+	duration = pulseIn(_rx,HIGH);
+	interrupts();
+	distance = (long)(duration/58);
+	if (distance > 600 || distance < 0) return (long)(-1);
+	else return distance;
+}
 
 /*  This is a library for the BMP280 pressure sensor
 
@@ -509,27 +540,3 @@ float BMP280::getAltitude(float seaLevelhPa) {
   altitude = 44330 * (1.0 - pow(pressure / seaLevelhPa, 0.1903));
   return altitude;
 }
-
-//-----Ultraschall Distanz Sensor HC-S04 begin----//
-Ultrasonic::Ultrasonic(int rx, int tx)
-{
-	_rx = rx;
-	_tx = tx;
-}
-/*The measured distance from the range 0 to 400 Centimeters*/
-long Ultrasonic::getDistance(void)
-{
-	pinMode(_rx, OUTPUT);
-	digitalWrite(_rx, LOW);
-	delayMicroseconds(2);
-	digitalWrite(_rx, HIGH);
-	delayMicroseconds(5);
-	digitalWrite(_rx,LOW);
-	pinMode(_tx,INPUT);
-	long duration;
-	duration = pulseIn(_tx,HIGH);
-	long distance;
-	distance = duration/58;
-	return distance;
-}
-//-----Ultraschall Distanz Sensor HC-S04 End----//
