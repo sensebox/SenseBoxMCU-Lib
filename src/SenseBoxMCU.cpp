@@ -1,3 +1,4 @@
+/*
 *SenseBoxMCU.cpp
 * Library for easy usage of senseBox MCU
 * April 2018
