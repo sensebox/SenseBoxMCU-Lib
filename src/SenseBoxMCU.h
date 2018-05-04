@@ -42,11 +42,15 @@ class TSL45315
 		unsigned long getIlluminance(void); 
 };
 
-class HC_SR04
-{//Ausgabe in Inch
-	public:
-		uint8_t begin(void);
-		double getDistance();
+//-----Ultraschall Distanz Sensor HC-S04----//
+class Ultrasonic
+{
+  public:
+    Ultrasonic(int rx, int tx);
+		long getDistance(void);
+  private:
+    int _rx;//pin of rx pin
+    int _tx;//pin of tx pin
 };
 
 class BMX055
