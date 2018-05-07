@@ -1,5 +1,6 @@
 //#ifndef SenseBoxMCU_h
 //#define SenseBoxMCU_h
+#pragma once
 
 #if (ARDUINO >= 100)
  #include "Arduino.h"
@@ -8,6 +9,8 @@
 #endif
 
 #include "Wire.h"
+#include <SPI.h>
+#include <WiFi101.h>
 //#include "SenseBoxIO.h"
 
 #define HDC1080_ADDR 0x40
@@ -19,6 +22,24 @@
 #define BMX055_MAGN_ADDR 0x10
 
 #define VEML6070_INTEGRATION_TIME_1 0x01 //IT_1: 5.625 uW/cm2/step
+
+class OpenSenseMap
+{
+	public:
+		OpenSenseMap(const char* boxId);
+		uint8_t begin(const char* ssid, const char* password);
+		void uploadMeasurement(float value, const char* sensorID);
+	private:
+		const char* senseBoxID;
+		//const char* sensorIDs[];
+		const char* server = "ingress.opensensemap.org";
+		const int port = 80;
+		unsigned int uploadIntervall = 10000;
+		WiFiSSLClient* client = NULL;
+		uint8_t status = WL_IDLE_STATUS;
+		const char* id = "";
+		const char* pw = "";
+};
 
 class HDC1080
 { //Ausgabe in Fahrenheit

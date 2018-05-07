@@ -6,6 +6,98 @@
 
 #include "SenseBoxMCU.h"
 
+OpenSenseMap::OpenSenseMap(const char* boxId)
+{
+	senseBoxID = boxId;
+}
+
+uint8_t OpenSenseMap::begin(const char* ssid, const char* password)
+{
+	id = ssid;
+	pw = password;
+	client = new WiFiSSLClient;
+	Serial.begin(9600); //check if already connected
+	while(!Serial);
+
+	if (WiFi.status() == WL_NO_SHIELD) {
+		Serial.println("WiFi shield not present");
+		while (true);
+	}
+
+	while (status != WL_CONNECTED) {
+		Serial.print("Attempting to connect to SSID: ");
+		Serial.println(ssid);
+		status = WiFi.begin(id, pw);
+
+		delay(10000);
+	}
+	Serial.println("Successfully connected to your WiFi.");
+
+	return status;
+}
+
+void OpenSenseMap::uploadMeasurement(float measurement, const char* sensorID)
+{ 
+	if (WiFi.status() != WL_CONNECTED) {
+		WiFi.disconnect();
+		delay(1000); // wait 1s
+		WiFi.begin(id, pw);
+		delay(5000); // wait 5s
+	}
+	// close any connection before send a new request.
+	// This will free the socket on the WiFi shield
+	if (client->connected()) {
+		client->stop();
+		delay(1000);
+	}
+	// prepare data. json must look like: {"value":"12.5"} 
+	char obs[10]; 
+	snprintf(obs, sizeof(obs), "%f", obs); //http://forum.arduino.cc/index.php?topic=243660.0
+	//dtostrf(measurement, 5, 2, obs);
+	Serial.println(obs); 
+	String value = "{\"value\":"; 
+	value += obs; 
+	value += "}"; 
+	// post observation to: http://opensensemap.org:80/boxes/boxId/sensorId
+	Serial.println("connecting...");
+	if (client->connect(server, port)) 
+	{
+		Serial.println("connected"); 
+		// Make a HTTP Post request: 
+		client->print("POST /boxes/"); 
+		client->print(senseBoxID);
+		client->print("/"); 
+		client->print(sensorID); 
+		client->println(" HTTP/1.1"); 
+		client->println("Host:opensensemap.org"); 
+		client->println("Content-Type: application/json"); 
+		client->println("Connection: close");  
+		client->print("Content-Length: "); 
+		client->println(value.length()); 
+		client->println(); 
+		client->print(value); 
+		client->println();
+	}
+	else 
+	{
+		Serial.println("Connection failed!");
+		return;
+	}
+
+	while (client->available()) {
+		char c = client->read();
+		Serial.write(c);
+		// if the server's disconnected, stop the client:
+		if (!client->connected()) {
+			Serial.println();
+			Serial.println("disconnecting from server.");
+			client->stop();
+		break;
+		}
+	}
+	Serial.flush();
+}
+
 uint8_t HDC1080::begin(){
   delay(20);
   Wire.begin();
@@ -540,3 +632,4 @@ float BMP280::getAltitude(float seaLevelhPa) {
   altitude = 44330 * (1.0 - pow(pressure / seaLevelhPa, 0.1903));
   return altitude;
 }
+
