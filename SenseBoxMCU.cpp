@@ -1,47 +1,64 @@
 /*SenseBoxMCU.cpp
-* Library for easy usage of senseBox MCU
-* April 2018
-* Reedu GmbH & Co. KG
-*/
+ * Library for easy usage of senseBox MCU
+ * April 2018
+ * Reedu GmbH & Co. KG
+ */
 
 #include "SenseBoxMCU.h"
 
-OpenSenseMap::OpenSenseMap(const char* boxId)
-{
-	senseBoxID = boxId;
-}
+Bee::Bee(){}
 
-uint8_t OpenSenseMap::begin(const char* ssid, const char* password)
+uint8_t Bee::connectToWifi(char* ssid, char* password)
 {
-	id = ssid;
+	nwid = ssid;
 	pw = password;
-	client = new WiFiSSLClient;
-	Serial.begin(9600); //check if already connected
-	while(!Serial);
+	if (!Serial)
+	{
+		Serial.begin(9600); //check if already connected
+		while(!Serial);
+	}
 
 	if (WiFi.status() == WL_NO_SHIELD) {
-		Serial.println("WiFi shield not present");
+		Serial.println("WiFi Bee not present.");
 		while (true);
 	}
 
 	while (status != WL_CONNECTED) {
 		Serial.print("Attempting to connect to SSID: ");
+		delay(100);
 		Serial.println(ssid);
-		status = WiFi.begin(id, pw);
+		status = WiFi.begin(ssid, password);
 
-		delay(10000);
+		delay(5000);
 	}
 	Serial.println("Successfully connected to your WiFi.");
 
 	return status;
 }
 
-void OpenSenseMap::uploadMeasurement(float measurement, const char* sensorID)
+char* Bee::getSsid()
+{
+	return this->nwid;
+}
+
+char* Bee::getPassword()
+{
+	return this->pw;
+}
+
+OpenSenseMap::OpenSenseMap(const char* boxId, Bee* bee)
+{
+	senseBoxID = boxId;
+	client = new WiFiClient;
+	xbee = bee;
+}
+
+void OpenSenseMap::uploadMeasurement(float measurement, char* sensorID)
 { 
 	if (WiFi.status() != WL_CONNECTED) {
 		WiFi.disconnect();
 		delay(1000); // wait 1s
-		WiFi.begin(id, pw);
+		WiFi.begin(xbee->getSsid(), xbee->getPassword());
 		delay(5000); // wait 5s
 	}
 	// close any connection before send a new request.
@@ -52,14 +69,17 @@ void OpenSenseMap::uploadMeasurement(float measurement, const char* sensorID)
 	}
 	// prepare data. json must look like: {"value":"12.5"} 
 	char obs[10]; 
-	snprintf(obs, sizeof(obs), "%f", obs); //http://forum.arduino.cc/index.php?topic=243660.0
+	snprintf(obs, sizeof(obs), "%f", measurement); //http://forum.arduino.cc/index.php?topic=243660.0
 	//dtostrf(measurement, 5, 2, obs);
-	Serial.println(obs); 
 	String value = "{\"value\":"; 
 	value += obs; 
 	value += "}"; 
+	Serial.println(value); 
+	Serial.println(value.length());
+	Serial.println(senseBoxID);
+	Serial.println(sensorID);
 	// post observation to: http://opensensemap.org:80/boxes/boxId/sensorId
-	Serial.println("connecting...");
+	Serial.print("connecting...");
 	if (client->connect(server, port)) 
 	{
 		Serial.println("connected"); 
@@ -69,7 +89,7 @@ void OpenSenseMap::uploadMeasurement(float measurement, const char* sensorID)
 		client->print("/"); 
 		client->print(sensorID); 
 		client->println(" HTTP/1.1"); 
-		client->println("Host:opensensemap.org"); 
+		client->println("Host: ingress.testing.opensensemap.org"); 
 		client->println("Content-Type: application/json"); 
 		client->println("Connection: close");  
 		client->print("Content-Length: "); 
@@ -83,7 +103,8 @@ void OpenSenseMap::uploadMeasurement(float measurement, const char* sensorID)
 		Serial.println("Connection failed!");
 		return;
 	}
-
+	Serial.println();
+	delay(1000);
 	while (client->available()) {
 		char c = client->read();
 		Serial.write(c);
@@ -96,6 +117,11 @@ void OpenSenseMap::uploadMeasurement(float measurement, const char* sensorID)
 		}
 	}
 	Serial.flush();
+}
+
+void OpenSenseMap::setUploadInterval(unsigned int time)
+{
+	uploadInterval = time;
 }
 
 uint8_t HDC1080::begin(){

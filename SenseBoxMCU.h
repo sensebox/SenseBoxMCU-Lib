@@ -23,22 +23,33 @@
 
 #define VEML6070_INTEGRATION_TIME_1 0x01 //IT_1: 5.625 uW/cm2/step
 
+class Bee 
+{
+	public:
+		Bee();
+		uint8_t connectToWifi(char* ssid, char* password);
+		char* getSsid();
+		char* getPassword();
+	private:
+		char* nwid = "";
+		char* pw = "";
+		int status = WL_IDLE_STATUS;
+};
+
+
 class OpenSenseMap
 {
 	public:
-		OpenSenseMap(const char* boxId);
-		uint8_t begin(const char* ssid, const char* password);
-		void uploadMeasurement(float value, const char* sensorID);
+		OpenSenseMap(const char* boxId, Bee* bee);
+		void uploadMeasurement(float value, char* sensorID);
+		void setUploadInterval(unsigned int);
 	private:
 		const char* senseBoxID;
-		//const char* sensorIDs[];
-		const char* server = "ingress.opensensemap.org";
+		const char* server = "ingress.testing.opensensemap.org";
 		const int port = 80;
-		unsigned int uploadIntervall = 10000;
-		WiFiSSLClient* client = NULL;
-		uint8_t status = WL_IDLE_STATUS;
-		const char* id = "";
-		const char* pw = "";
+		unsigned int uploadInterval = 10000;
+		Client* client = NULL;
+		Bee* xbee = NULL;
 };
 
 class HDC1080
