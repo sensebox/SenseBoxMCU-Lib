@@ -26,7 +26,7 @@
 class Bee 
 {
 	public:
-		Bee();
+	Bee();
 		uint8_t connectToWifi(char* ssid, char* password);
 		char* getSsid();
 		char* getPassword();
@@ -50,6 +50,19 @@ class OpenSenseMap
 		unsigned int uploadInterval = 10000;
 		Client* client = NULL;
 		Bee* xbee = NULL;
+};
+
+class SDS011
+{
+	public:
+		SDS011(Stream& serial);
+		float getPm10(void);
+		float getPm25(void);
+	private:
+		Stream& sds_data;
+		int read(float *p25, float *p10);
+		float pm10 = 0;
+		float pm25 = 0;
 };
 
 class HDC1080
