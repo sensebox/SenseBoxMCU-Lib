@@ -12,8 +12,12 @@ uint8_t Bee::connectToWifi(char* ssid, char* password)
 {
 	nwid = ssid;
 	pw = password;
-	Serial.begin(9600); //check if already connected
-	delay(100);
+	if (!Serial)
+	{
+		Serial.begin(9600); //check if already connected
+		delay(1000);
+	}
+	
 	if (WiFi.status() == WL_NO_SHIELD) {
 		Serial.println("WiFi Bee not present.");
 		while (true);
