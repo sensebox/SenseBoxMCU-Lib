@@ -12,12 +12,8 @@ uint8_t Bee::connectToWifi(char* ssid, char* password)
 {
 	nwid = ssid;
 	pw = password;
-	if (!Serial)
-	{
-		Serial.begin(9600); //check if already connected
-		while(!Serial);
-	}
-
+	Serial.begin(9600); //check if already connected
+	delay(100);
 	if (WiFi.status() == WL_NO_SHIELD) {
 		Serial.println("WiFi Bee not present.");
 		while (true);
@@ -89,7 +85,7 @@ void OpenSenseMap::uploadMeasurement(float measurement, char* sensorID)
 		client->print("/"); 
 		client->print(sensorID); 
 		client->println(" HTTP/1.1"); 
-		client->println("Host: ingress.testing.opensensemap.org"); 
+		client->println("Host: ingress.opensensemap.org"); 
 		client->println("Content-Type: application/json"); 
 		client->println("Connection: close");  
 		client->print("Content-Length: "); 
@@ -500,37 +496,29 @@ void BMX055::getRotation(int *x, int *y, int *z){
 	*z = zGyro;
 }
 
-HCSR04::HCSR04(int trigger, int echo)
+//-----Ultraschall Distanz Sensor HC-SR04 begin----//
+Ultrasonic::Ultrasonic(int rx, int tx)
 {
-	_rx = echo;
-	_tx = trigger;
+    _rx = rx;
+    _tx = tx;
 }
-
-void HCSR04::begin()
-{
-	pinMode(_rx, INPUT);
-	pinMode(_tx, OUTPUT);
-	digitalWrite(_tx, HIGH); 
-}
-
 /*The measured distance from the range 0 to 400 Centimeters*/
-long HCSR04::getDistance(void)
+long Ultrasonic::getDistance(void)
 {
-	long duration;
-	long distance;
-
-	digitalWrite(_tx, LOW);
-	delayMicroseconds(3);
-	noInterrupts();
-	digitalWrite(_tx, HIGH);
-	delayMicroseconds(10);
-	digitalWrite(_tx,LOW);
-	duration = pulseIn(_rx,HIGH);
-	interrupts();
-	distance = (long)(duration/58);
-	if (distance > 600 || distance < 0) return (long)(-1);
-	else return distance;
+    pinMode(_rx, OUTPUT);
+    digitalWrite(_rx, LOW);
+    delayMicroseconds(2);
+    digitalWrite(_rx, HIGH);
+    delayMicroseconds(5);
+    digitalWrite(_rx,LOW);
+    pinMode(_tx,INPUT);
+    long duration;
+    duration = pulseIn(_tx,HIGH);
+    long distance;
+    distance = duration/58;
+    return distance;
 }
+//-----Ultraschall Distanz Sensor HC-SR04 End----//
 
 /*  This is a library for the BMP280 pressure sensor
 

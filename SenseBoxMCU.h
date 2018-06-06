@@ -45,7 +45,7 @@ class OpenSenseMap
 		void setUploadInterval(unsigned int);
 	private:
 		const char* senseBoxID;
-		const char* server = "ingress.testing.opensensemap.org";
+		const char* server = "ingress.opensensemap.org";
 		const int port = 80;
 		unsigned int uploadInterval = 10000;
 		Client* client = NULL;
@@ -87,15 +87,14 @@ class TSL45315
 		unsigned long getIlluminance(void); 
 };
 
-class HCSR04
+class Ultrasonic
 {
   public:
-    HCSR04(int rx, int tx);
-    void begin();
-	long getDistance(void);
+    Ultrasonic(int rx, int tx);
+        long getDistance(void);
   private:
-    int _rx;
-    int _tx;
+    int _rx;//pin of rx pin
+    int _tx;//pin of tx pin
 };
 
 class BMX055
