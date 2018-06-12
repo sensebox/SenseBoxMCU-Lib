@@ -500,7 +500,7 @@ void BMX055::getRotation(int *x, int *y, int *z){
 	*z = zGyro;
 }
 
-//-----Ultraschall Distanz Sensor HC-SR04 begin----//
+
 Ultrasonic::Ultrasonic(int rx, int tx)
 {
     _rx = rx;
@@ -522,7 +522,43 @@ long Ultrasonic::getDistance(void)
     distance = duration/58;
     return distance;
 }
-//-----Ultraschall Distanz Sensor HC-SR04 End----//
+
+void GPS::begin()
+{
+	Wire.begin();
+	gps = new TinyGPSPlus;
+}
+
+float GPS::getLatitude()
+{
+	getGPS();
+	return lat;
+}
+
+float GPS::getLongitude()
+{
+	getGPS();
+	return lng;
+}
+float GPS::getAltitude()
+{
+	getGPS();
+	return alt;
+}
+
+void GPS::getGPS()
+{
+	Wire.requestFrom(0x42, 10);
+	while(Wire.available())
+	//while (Wire.available() > 0)
+		if (gps->encode(Wire.read()))
+				if(gps->location.isValid())
+				{
+					lat = gps->location.lat();
+					lng = gps->location.lng();
+					alt = gps->altitude.meters();
+				}
+}
 
 /*  This is a library for the BMP280 pressure sensor
 

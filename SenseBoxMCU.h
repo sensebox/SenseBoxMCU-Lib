@@ -11,6 +11,7 @@
 #include "Wire.h"
 #include <SPI.h>
 #include <WiFi101.h>
+#include <TinyGPS++.h>
 //#include "SenseBoxIO.h"
 
 #define HDC1080_ADDR 0x40
@@ -106,6 +107,21 @@ class BMX055
 		void getRotation(int *x, int *y, int *z);
 	private:
 		unsigned int _data[6];
+};
+
+class GPS
+{
+	public:
+		void begin();
+		float getLatitude();
+		float getLongitude();
+		float getAltitude();
+	private:
+		TinyGPSPlus* gps;
+		void getGPS();
+		float lat = 0.0;
+		float lng = 0.0;
+		float alt = 0.0;
 };
 
 /***************************************************************************
@@ -206,9 +222,5 @@ private:
 };
 
 //todo:
-//display  [1]
-//WiFi Bee [1]
-//SD Bee   [1]
 //GPS      [2]
-//SDS011   [2]
 //BME680   [3]
