@@ -43,6 +43,7 @@ class OpenSenseMap
 	public:
 		OpenSenseMap(const char* boxId, Bee* bee);
 		void uploadMeasurement(float value, char* sensorID);
+		void uploadMobileMeasurement(float value, char* sensorID, float lat, float lng);
 		void setUploadInterval(unsigned int);
 	private:
 		const char* senseBoxID;
