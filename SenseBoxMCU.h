@@ -43,6 +43,7 @@ class OpenSenseMap
 	public:
 		OpenSenseMap(const char* boxId, Bee* bee);
 		void uploadMeasurement(float value, char* sensorID);
+		void uploadMobileMeasurement(float value, char* sensorID, float lat, float lng);
 		void setUploadInterval(unsigned int);
 	private:
 		const char* senseBoxID;
@@ -116,12 +117,14 @@ class GPS
 		float getLatitude();
 		float getLongitude();
 		float getAltitude();
+		float getSpeed();
 	private:
 		TinyGPSPlus* gps;
 		void getGPS();
 		float lat = 0.0;
 		float lng = 0.0;
 		float alt = 0.0;
+		float speed = 0.0;
 };
 
 /***************************************************************************

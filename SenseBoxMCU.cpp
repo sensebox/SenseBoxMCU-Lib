@@ -119,6 +119,81 @@ void OpenSenseMap::uploadMeasurement(float measurement, char* sensorID)
 	Serial.flush();
 }
 
+void OpenSenseMap::uploadMobileMeasurement(float measurement, char* sensorID, float lat, float lng)
+{ 
+	if (WiFi.status() != WL_CONNECTED) {
+		WiFi.disconnect();
+		delay(1000); // wait 1s
+		WiFi.begin(xbee->getSsid(), xbee->getPassword());
+		delay(5000); // wait 5s
+	}
+	// close any connection before send a new request.
+	// This will free the socket on the WiFi shield
+	if (client->connected()) {
+		client->stop();
+		delay(1000);
+	}
+	// prepare data. json must look like: {"value":"12.5"} 
+	char obs[10];
+	char clat[10];
+	char clng[10];
+	snprintf(obs, sizeof(obs), "%f", measurement);
+	snprintf(clat, sizeof(obs), "%f", lat);
+	snprintf(clng, sizeof(obs), "%f", lng); //http://forum.arduino.cc/index.php?topic=243660.0
+	//dtostrf(measurement, 5, 2, obs);
+	String value = "{\"value\":"; 
+	value += obs;
+	value +=  ",";
+	value += "\"location\":[";
+	value += clng;
+	value += ",";
+	value += clat;
+	value += "]}"; 
+	Serial.println(value); 
+	Serial.println(value.length());
+	Serial.println(senseBoxID);
+	Serial.println(sensorID);
+	// post observation to: http://opensensemap.org:80/boxes/boxId/sensorId
+	Serial.print("connecting...");
+	if (client->connect(server, port)) 
+	{
+		Serial.println("connected"); 
+		// Make a HTTP Post request: 
+		client->print("POST /boxes/"); 
+		client->print(senseBoxID);
+		client->print("/"); 
+		client->print(sensorID); 
+		client->println(" HTTP/1.1"); 
+		client->println("Host: ingress.opensensemap.org"); 
+		client->println("Content-Type: application/json"); 
+		client->println("Connection: close");  
+		client->print("Content-Length: "); 
+		client->println(value.length()); 
+		client->println(); 
+		client->print(value); 
+		client->println();
+	}
+	else 
+	{
+		Serial.println("Connection failed!");
+		return;
+	}
+	Serial.println();
+	delay(1000);
+	while (client->available()) {
+		char c = client->read();
+		Serial.write(c);
+		// if the server's disconnected, stop the client:
+		if (!client->connected()) {
+			Serial.println();
+			Serial.println("disconnecting from server.");
+			client->stop();
+		break;
+		}
+	}
+	Serial.flush();
+}
+
 void OpenSenseMap::setUploadInterval(unsigned int time)
 {
 	uploadInterval = time;
@@ -546,6 +621,12 @@ float GPS::getAltitude()
 	return alt;
 }
 
+float GPS::getSpeed()
+{
+	getGPS();
+	return speed;
+}
+
 void GPS::getGPS()
 {
 	Wire.requestFrom(0x42, 10);
@@ -557,6 +638,7 @@ void GPS::getGPS()
 					lat = gps->location.lat();
 					lng = gps->location.lng();
 					alt = gps->altitude.meters();
+					speed = gps->speed.kmph();
 				}
 }
 
