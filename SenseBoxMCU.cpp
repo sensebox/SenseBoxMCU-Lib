@@ -627,6 +627,18 @@ float GPS::getSpeed()
 	return speed;
 }
 
+float GPS::getDate()
+{
+	getGPS();
+	return date;
+}
+
+float GPS::getTime()
+{
+	getGPS();
+	return time;
+}
+
 void GPS::getGPS()
 {
 	Wire.requestFrom(0x42, 10);
@@ -639,6 +651,9 @@ void GPS::getGPS()
 					lng = gps->location.lng();
 					alt = gps->altitude.meters();
 					speed = gps->speed.kmph();
+					time = gps->time.value();
+					date = gps->date.value();
+
 				}
 }
 
