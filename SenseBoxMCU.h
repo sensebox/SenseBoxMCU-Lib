@@ -31,10 +31,14 @@ class Bee
 		uint8_t connectToWifi(char* ssid, char* password);
 		char* getSsid();
 		char* getPassword();
+		char* getIpAddress();
+
 	private:
 		char* nwid = "";
 		char* pw = "";
+        char ip[15];
 		int status = WL_IDLE_STATUS;
+        void storeIpAddress();
 };
 
 

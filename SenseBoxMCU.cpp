@@ -32,6 +32,7 @@ uint8_t Bee::connectToWifi(char* ssid, char* password)
 		delay(5000);
 	}
 	Serial.println("Successfully connected to your WiFi.");
+    this->storeIpAddress();
 
 	return status;
 }
@@ -44,6 +45,17 @@ char* Bee::getSsid()
 char* Bee::getPassword()
 {
 	return this->pw;
+}
+
+char* Bee::getIpAddress()
+{
+    return this->ip;
+}
+
+void Bee::storeIpAddress()
+{
+    IPAddress ip = WiFi.localIP();
+    sprintf(this->ip, "%u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
 }
 
 OpenSenseMap::OpenSenseMap(const char* boxId, Bee* bee)
