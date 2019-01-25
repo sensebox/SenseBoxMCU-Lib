@@ -822,3 +822,51 @@ float BMP280::getAltitude(float seaLevelhPa) {
   return altitude;
 }
 
+/* Button Library*/
+
+Button::Button(int pin)
+{
+    _pin = pin;
+}
+
+void Button::begin(){
+	pinMode(_pin, INPUT_PULLUP);
+	_state = digitalRead(_pin);
+}
+
+bool Button::isPressed(){
+	bool buttonState = 0;       
+	bool state = LOW;
+	buttonState = digitalRead(_pin);
+  	if (buttonState != _state) {
+    	state = HIGH;
+  	} else {
+    	state = LOW;
+  	}
+  	return state;
+}
+
+
+
+bool Button::getSwitch(){
+	int reading;
+	long time = 0;         // the last time the output pin was toggled
+	long debounce = 200;   // the debounce time, increase if the output flickers
+	reading = digitalRead(_pin);
+
+  if (reading == HIGH && previous == LOW && millis() - time > debounce) {
+    if (_switchState == HIGH)
+      _switchState = LOW;
+    else
+      _switchState = HIGH;
+
+    time = millis();    
+  }
+  previous = reading;
+  return _switchState;
+}
+
+int Button::getChange(){
+
+}
+
