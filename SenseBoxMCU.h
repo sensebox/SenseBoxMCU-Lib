@@ -137,13 +137,14 @@ class Button
 		void begin();
 		bool getSwitch();
 		bool isPressed();
-		int getChange();
+		bool wasPressed();
 		
 
 	private:
 	unsigned int _pin; //button pin
 	bool _state = false;
 	int _switchState = HIGH;
+	int _wasPressed = LOW;
 	int previous = LOW;
 	
 };

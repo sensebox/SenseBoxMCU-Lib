@@ -866,7 +866,23 @@ bool Button::getSwitch(){
   return _switchState;
 }
 
-int Button::getChange(){
+bool Button::wasPressed(){
+	int reading;
+	long time = 0;         // the last time the output pin was toggled
+	long debounce = 200;   // the debounce time, increase if the output flickers
+	reading = digitalRead(_pin);
 
+if (reading != previous && millis() - time > debounce) {
+      if (reading == _state)
+	  _wasPressed = HIGH;
+	}
+    else
+      _wasPressed = LOW;
+
+    time = millis();    
+	previous = reading;
+	delay(50);
+  return _wasPressed;
 }
+
 
