@@ -12,6 +12,8 @@
 #include <SPI.h>
 #include <WiFi101.h>
 #include <TinyGPS++.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 //#include "SenseBoxIO.h"
 
 #define HDC1080_ADDR 0x40
@@ -127,6 +129,27 @@ class GPS
 		float speed = 0.0;
 };
 
+class Button
+
+{
+	public: 
+	Button(int pin);
+		void begin();
+		bool getSwitch();
+		bool isPressed();
+		bool wasPressed();
+		
+
+	private:
+	unsigned int _pin; //button pin
+	bool _state = false;
+	int _switchState = HIGH;
+	int _wasPressed = LOW;
+	int previous = LOW;
+	
+};
+
+
 /***************************************************************************
   This is a library for the BMP280 pressure sensor
 
@@ -225,5 +248,4 @@ private:
 };
 
 //todo:
-//GPS      [2]
 //BME680   [3]
