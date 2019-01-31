@@ -120,6 +120,7 @@ class GPS
 		float getLongitude();
 		float getAltitude();
 		float getSpeed();
+		float getHdop();
 		float getDate();
 		float getTime();
 	private:
@@ -129,6 +130,7 @@ class GPS
 		float lng = 0.0;
 		float alt = 0.0;
 		float speed = 0.0;
+		float hdop = 0.0;
 		float time = 0.0;
 		float date = 0.0;
 };
