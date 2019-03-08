@@ -657,6 +657,12 @@ float GPS::getSpeed()
 	return speed;
 }
 
+float GPS::getHdop()
+{
+	getGPS();
+	return hdop;
+}
+
 float GPS::getDate()
 {
 	getGPS();
@@ -681,9 +687,9 @@ void GPS::getGPS()
 					lng = gps->location.lng();
 					alt = gps->altitude.meters();
 					speed = gps->speed.kmph();
+					hdop = gps->hdop.hdop();
 					time = gps->time.value();
 					date = gps->date.value();
-
 				}
 }
 
