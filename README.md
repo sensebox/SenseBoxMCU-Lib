@@ -112,3 +112,45 @@ functions public:
 			float getSpeed();
 ```
 
+### Mic
+
+```Arduino
+
+Classname: Microphone
+
+functions public: 
+		Microphone (int pin);
+		float getValue();
+```
+
+### BMX
+
+```Arduino
+
+Classname BMX055
+
+functions	public:
+		uint8_t beginAcc(char range);
+		uint8_t beginGyro(void);
+		uint8_t beginMagn(void);
+		void getAcceleration(float *x, float *y, float *z, float *accTotal);
+		void getMagnet(int *x, int *y, int *z);
+		void getRotation(int *x, int *y, int *z);
+```
+
+### Button
+
+```Arduino
+
+Classname Button
+
+functions public: 
+		Button(int pin);
+		void begin();
+		bool getSwitch();
+		bool isPressed();
+		bool wasPressed();
+```
+
+
+
