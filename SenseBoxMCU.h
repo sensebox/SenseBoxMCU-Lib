@@ -104,12 +104,16 @@ class Ultrasonic
 class BMX055
 {
 	public:
-		uint8_t begin(void);
-		void getAcceleration(int *x, int *y, int *z);
+		uint8_t beginAcc(char range);
+		uint8_t beginGyro(void);
+		uint8_t beginMagn(void);
+		void getAcceleration(float *x, float *y, float *z, float *accTotal);
 		void getMagnet(int *x, int *y, int *z);
 		void getRotation(int *x, int *y, int *z);
 	private:
 		unsigned int _data[6];
+		char _range;
+		float accRange;
 };
 
 class GPS

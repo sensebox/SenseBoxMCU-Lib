@@ -1,7 +1,8 @@
 /*SenseBoxMCU.cpp
  * Library for easy usage of senseBox MCU
- * April 2018
- * Reedu GmbH & Co. KG
+ * Created: 2018/04/10
+ * last Modified: 2019/02/15 13:48:00
+ * senseBox @ Institute for Geoinformatics WWU Münster
  */
 
 #include "SenseBoxMCU.h"
@@ -376,19 +377,33 @@ unsigned long TSL45315::getIlluminance(){
 	return (unsigned long)(lux);
 }
 
-uint8_t BMX055::begin(){
-	delay(20);
+uint8_t BMX055::beginAcc(char range){
+	
+	char _range = range;	//2g Range 0x03
+
+	switch (range){
+	case 0x03: 
+	accRange = (2.0/2048.0);
+	break;
+	case 0x05:
+	accRange = (4.0/2048.0);
+	break;
+	case 0x08:
+	accRange = (8.0/2048.0);
+	break;
+	case 0x0C:
+	accRange = (16.0/2048.0);
+	break;
+	}
 	// Initialise I2C communication as MASTER
 	Wire1.begin();
-	// Initialise Serial Communication, set baud rate = 9600
-	Serial.begin(9600);
 
 	// Start I2C Transmission
 	Wire1.beginTransmission(BMX055_ACCL_ADDR);
 	// Select PMU_Range register
 	Wire1.write(0x0F);
 	// Range = +/- 2g
-	Wire1.write(0x03);
+	Wire1.write(range);
 	// Stop I2C Transmission
 	Wire1.endTransmission();
 
@@ -409,6 +424,11 @@ uint8_t BMX055::begin(){
 	Wire1.write(0x00);
 	// Stop I2C Transmission on the device
 	Wire1.endTransmission();
+
+}
+
+uint8_t BMX055::beginGyro (){
+
 
 	// Start I2C Transmission
 	Wire1.beginTransmission(BMX055_GYRO_ADDR);
@@ -436,6 +456,10 @@ uint8_t BMX055::begin(){
 	Wire1.write(0x00);
 	// Stop I2C Transmission
 	Wire1.endTransmission();
+
+}
+
+uint8_t BMX055::beginMagn(){
 
 	// Start I2C Transmission
 	Wire1.beginTransmission(BMX055_MAGN_ADDR);
@@ -484,7 +508,7 @@ uint8_t BMX055::begin(){
 	delay(300);
 }
 
-void BMX055::getAcceleration(int *x, int *y, int *z){
+void BMX055::getAcceleration(float *x, float *y, float *z, float *accTotal){
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -504,15 +528,19 @@ void BMX055::getAcceleration(int *x, int *y, int *z){
 	// Convert the data to 12-bits
 	int xAccl = ((_data[1] * 256) + (_data[0] & 0xF0)) / 16;
 	if (xAccl > 2047) xAccl -= 4096;
-	*x = xAccl;
+	*x = xAccl*accRange;
 
 	int yAccl = ((_data[3] * 256) + (_data[2] & 0xF0)) / 16;
 	if (yAccl > 2047) yAccl -= 4096;
-	*y = yAccl;
+	*y = yAccl*accRange;
 
 	int zAccl = ((_data[5] * 256) + (_data[4] & 0xF0)) / 16;
 	if (zAccl > 2047) zAccl -= 4096;
-	*z = zAccl;
+	*z = zAccl*accRange;
+
+	*accTotal = 9.81 * sqrt((sq(*x)+sq(*y)+sq(*z)));
+
+
 }
 
 void BMX055::getMagnet(int *x, int *y, int *z){
