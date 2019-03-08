@@ -157,6 +157,20 @@ class Button
 	
 };
 
+class Microphone
+
+{
+	public: 
+	Microphone (int pin);
+		void begin();
+		float getValue();
+
+	private:
+	unsigned int _pin;
+	unsigned int micValue;
+	const int sampleTime = 100;
+};
+
 
 /***************************************************************************
   This is a library for the BMP280 pressure sensor

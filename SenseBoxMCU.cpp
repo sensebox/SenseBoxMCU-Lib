@@ -395,8 +395,6 @@ uint8_t BMX055::beginAcc(char range){
 	accRange = (16.0/2048.0);
 	break;
 	}
-
-
 	// Initialise I2C communication as MASTER
 	Wire1.begin();
 
@@ -631,6 +629,7 @@ long Ultrasonic::getDistance(void)
 
 void GPS::begin()
 {
+	delay(20);
 	Wire.begin();
 	gps = new TinyGPSPlus;
 }
@@ -704,6 +703,7 @@ void GPS::getGPS()
 */
 
 bool BMP280::begin() {
+	delay(20);
 	Wire.begin();
 	Wire.beginTransmission(118);
 
@@ -929,6 +929,41 @@ if (reading != previous && millis() - time > debounce) {
 	previous = reading;
 	delay(50);
   return _wasPressed;
+}
+
+Microphone::Microphone (int pin){
+	_pin = pin;
+}
+
+void Microphone::begin (){
+
+}
+
+float Microphone::getValue(){
+unsigned long start = millis();  // Start des Messintervalls
+ unsigned int peakToPeak = 0;   // Abstand von maximalem zu minimalem Amplitudenausschlag
+ unsigned int signalMax = 0;    
+ unsigned int signalMin = 1023;
+
+ // Sammle Daten für 100 Millisekunden
+ while (millis() - start < sampleTime)
+    {
+    micValue = analogRead(_pin); // Messe den aktuellen Wert
+        if (micValue < 1023)  // sortiere Fehlmessungen aus, deren Werte über dem max Wert 1024 liegen 
+        {
+            if (micValue > signalMax)
+            {
+            signalMax = micValue;  // speichere den maximal gemessenen Wert
+            }
+        else if (micValue < signalMin)
+            {
+            signalMin = micValue;  // speichere den minimal gemessenen Wert
+            }
+        }
+    }
+ peakToPeak = signalMax - signalMin;  // max - min = Abstand von maximalem zu minimalem Amplitudenausschlag
+ double volts = (peakToPeak * 5.0) / 1023;  // wandle in Volt um
+ return volts;
 }
 
 
