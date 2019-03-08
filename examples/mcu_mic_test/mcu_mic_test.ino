@@ -1,6 +1,6 @@
 #include "SenseBoxMCU.h"
 
-Microphone mircophone(1);
+Microphone microphone(1);
 
 
 void setup() {
