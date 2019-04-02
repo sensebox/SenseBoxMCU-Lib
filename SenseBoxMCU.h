@@ -108,6 +108,10 @@ class BMX055
 		uint8_t beginGyro(void);
 		uint8_t beginMagn(void);
 		void getAcceleration(float *x, float *y, float *z, float *accTotal);
+		float getAccelerationX();
+		float getAccelerationY();
+		float getAccelerationZ();
+		float getAccelerationTotal();
 		void getMagnet(int *x, int *y, int *z);
 		void getRotation(int *x, int *y, int *z);
 	private:
