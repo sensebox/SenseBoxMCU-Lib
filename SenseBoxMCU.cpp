@@ -1,7 +1,7 @@
 /*SenseBoxMCU.cpp
  * Library for easy usage of senseBox MCU
  * Created: 2018/04/10
- * last Modified: 2019/02/15 13:48:00
+ * last Modified: 2019/04/02 12:12:36
  * senseBox @ Institute for Geoinformatics WWU Münster
  */
 
@@ -539,8 +539,108 @@ void BMX055::getAcceleration(float *x, float *y, float *z, float *accTotal){
 	*z = zAccl*accRange;
 
 	*accTotal = 9.81 * sqrt((sq(*x)+sq(*y)+sq(*z)));
+}
 
+float BMX055::getAccelerationX(){
+		for (int i = 0; i < 6; i++)
+	{
+		// Start I2C Transmission
+		Wire1.beginTransmission(BMX055_ACCL_ADDR);
+		// Select data register
+		Wire1.write((2 + i));
+		// Stop I2C Transmission
+		Wire1.endTransmission();
+		// Request 1 byte of data
+		Wire1.requestFrom(BMX055_ACCL_ADDR, 1);
+		// Read 6 bytes of data
+		// xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
+		if (Wire1.available() == 1) _data[i] = Wire1.read();
+	}
 
+	// Convert the data to 12-bits
+	int xAccl = ((_data[1] * 256) + (_data[0] & 0xF0)) / 16;
+	if (xAccl > 2047) xAccl -= 4096;
+	float x = xAccl*accRange;
+	return x;
+
+	}
+
+float BMX055::getAccelerationY(){
+			for (int i = 0; i < 6; i++)
+	{
+		// Start I2C Transmission
+		Wire1.beginTransmission(BMX055_ACCL_ADDR);
+		// Select data register
+		Wire1.write((2 + i));
+		// Stop I2C Transmission
+		Wire1.endTransmission();
+		// Request 1 byte of data
+		Wire1.requestFrom(BMX055_ACCL_ADDR, 1);
+		// Read 6 bytes of data
+		// xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
+		if (Wire1.available() == 1) _data[i] = Wire1.read();
+	}
+
+	int yAccl = ((_data[3] * 256) + (_data[2] & 0xF0)) / 16;
+	if (yAccl > 2047) yAccl -= 4096;
+	float y = yAccl*accRange;	
+	return y;
+	}
+
+float BMX055::getAccelerationZ(){
+				for (int i = 0; i < 6; i++)
+	{
+		// Start I2C Transmission
+		Wire1.beginTransmission(BMX055_ACCL_ADDR);
+		// Select data register
+		Wire1.write((2 + i));
+		// Stop I2C Transmission
+		Wire1.endTransmission();
+		// Request 1 byte of data
+		Wire1.requestFrom(BMX055_ACCL_ADDR, 1);
+		// Read 6 bytes of data
+		// xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
+		if (Wire1.available() == 1) _data[i] = Wire1.read();
+	}
+
+	int zAccl = ((_data[5] * 256) + (_data[4] & 0xF0)) / 16;
+	if (zAccl > 2047) zAccl -= 4096;
+	float z = zAccl*accRange;
+	return z;
+}
+
+float BMX055::getAccelerationTotal(){
+
+	for (int i = 0; i < 6; i++)
+	{
+		// Start I2C Transmission
+		Wire1.beginTransmission(BMX055_ACCL_ADDR);
+		// Select data register
+		Wire1.write((2 + i));
+		// Stop I2C Transmission
+		Wire1.endTransmission();
+		// Request 1 byte of data
+		Wire1.requestFrom(BMX055_ACCL_ADDR, 1);
+		// Read 6 bytes of data
+		// xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
+		if (Wire1.available() == 1) _data[i] = Wire1.read();
+	}
+
+	// Convert the data to 12-bits
+	int xAccl = ((_data[1] * 256) + (_data[0] & 0xF0)) / 16;
+	if (xAccl > 2047) xAccl -= 4096;
+	float x = xAccl*accRange;
+
+	int yAccl = ((_data[3] * 256) + (_data[2] & 0xF0)) / 16;
+	if (yAccl > 2047) yAccl -= 4096;
+	float y = yAccl*accRange;
+
+	int zAccl = ((_data[5] * 256) + (_data[4] & 0xF0)) / 16;
+	if (zAccl > 2047) zAccl -= 4096;
+	float z = zAccl*accRange;
+
+	float accTotal = 9.81 * sqrt((sq(x)+sq(y)+sq(z)));
+	return accTotal;
 }
 
 void BMX055::getMagnet(int *x, int *y, int *z){
