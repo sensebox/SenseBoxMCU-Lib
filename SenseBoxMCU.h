@@ -14,7 +14,9 @@
 #include <TinyGPS++.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-//#include "SenseBoxIO.h"
+#include "senseBoxIO.h"
+#include <SD.h>
+#include "WebUtil.h"
 
 #define HDC1080_ADDR 0x40
 #define BMP280_ADDR 0x76
@@ -33,10 +35,13 @@ class Bee
 		uint8_t connectToWifi(char* ssid, char* password);
 		char* getSsid();
 		char* getPassword();
+		char* getIpAddress();
 	private:
 		char* nwid = "";
 		char* pw = "";
+		char ip[15];
 		int status = WL_IDLE_STATUS;
+		void storeIpAddress();
 };
 
 
@@ -55,6 +60,21 @@ class OpenSenseMap
 		Client* client = NULL;
 		Bee* xbee = NULL;
 };
+
+class WebServer
+{
+	public:
+		WebServer(); 
+		void startAP(char* ssid);
+		void initServerFromSD();
+		void initServer();
+		void readHTML();
+		private:
+		char* nwid = "";
+		WiFiServer* server = NULL;
+};
+
+
 
 class SDS011
 {
