@@ -31,6 +31,18 @@ Now you have acces to the functions:
 ```Arduino
 hdc.getTemperature();
 ```
+
+### Bee
+```Arduino 
+public:
+	Bee();
+		uint8_t connectToWifi(char* ssid, char* password);
+		void startAP(char* ssid);
+		char* getSsid();
+		char* getPassword();
+		char* getIpAddress();
+```		
+
 ### OpenSenseMap
 ```Arduino 
 Classname: OpenSenseMap
@@ -111,4 +123,45 @@ functions public:
 			float getAltitude();
 			float getSpeed();
 ```
+
+### Mic
+
+```Arduino
+
+Classname: Microphone
+
+functions public: 
+		Microphone (int pin);
+		float getValue();
+```
+
+### BMX
+
+```Arduino
+
+Classname BMX055
+
+functions	public:
+		uint8_t beginAcc(char range);
+		uint8_t beginGyro(void);
+		uint8_t beginMagn(void);
+		void getAcceleration(float *x, float *y, float *z, float *accTotal);
+		void getMagnet(int *x, int *y, int *z);
+		void getRotation(int *x, int *y, int *z);
+```
+
+### Button
+
+```Arduino
+
+Classname Button
+
+functions public: 
+		Button(int pin);
+		void begin();
+		bool getSwitch();
+		bool isPressed();
+		bool wasPressed();
+```
+
 

@@ -1,7 +1,8 @@
 /*SenseBoxMCU.cpp
  * Library for easy usage of senseBox MCU
- * April 2018
- * Reedu GmbH & Co. KG
+ * Created: 2018/04/10
+ * last Modified: 2019/04/10 10:12:03
+ * senseBox @ Institute for Geoinformatics WWU Münster
  */
 
 #include "SenseBoxMCU.h"
@@ -32,8 +33,31 @@ uint8_t Bee::connectToWifi(char* ssid, char* password)
 		delay(5000);
 	}
 	Serial.println("Successfully connected to your WiFi.");
+	this->storeIpAddress();
 
 	return status;
+}
+
+void Bee::startAP(char* ssid){
+	nwid = ssid;
+  senseBoxIO.powerXB1(false); 
+  delay(250);
+  senseBoxIO.powerXB1(true);
+  if(WiFi.status() == WL_NO_SHIELD)
+  {
+    senseBoxIO.statusRed(); 
+    WiFi.end();
+    senseBoxIO.powerXB1(false);
+    return; 
+  }
+  int status = WiFi.beginAP(nwid);
+  if(status != WL_AP_LISTENING)
+  {
+    senseBoxIO.statusRed();
+    WiFi.end();
+    senseBoxIO.powerXB1(false);
+    return;
+  }	
 }
 
 char* Bee::getSsid()
@@ -44,6 +68,17 @@ char* Bee::getSsid()
 char* Bee::getPassword()
 {
 	return this->pw;
+}
+
+char* Bee::getIpAddress()
+{
+    return this->ip;
+}
+
+ void Bee::storeIpAddress()
+{
+    IPAddress ip = WiFi.localIP();
+    sprintf(this->ip, "%u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
 }
 
 OpenSenseMap::OpenSenseMap(const char* boxId, Bee* bee)
@@ -376,18 +411,33 @@ unsigned long TSL45315::getIlluminance(){
 	return (unsigned long)(lux);
 }
 
-uint8_t BMX055::begin(){
+uint8_t BMX055::beginAcc(char range){
+	
+	char _range = range;	//2g Range 0x03
+
+	switch (range){
+	case 0x03: 
+	accRange = (2.0/2048.0);
+	break;
+	case 0x05:
+	accRange = (4.0/2048.0);
+	break;
+	case 0x08:
+	accRange = (8.0/2048.0);
+	break;
+	case 0x0C:
+	accRange = (16.0/2048.0);
+	break;
+	}
 	// Initialise I2C communication as MASTER
 	Wire1.begin();
-	// Initialise Serial Communication, set baud rate = 9600
-	Serial.begin(9600);
 
 	// Start I2C Transmission
 	Wire1.beginTransmission(BMX055_ACCL_ADDR);
 	// Select PMU_Range register
 	Wire1.write(0x0F);
 	// Range = +/- 2g
-	Wire1.write(0x03);
+	Wire1.write(range);
 	// Stop I2C Transmission
 	Wire1.endTransmission();
 
@@ -408,6 +458,11 @@ uint8_t BMX055::begin(){
 	Wire1.write(0x00);
 	// Stop I2C Transmission on the device
 	Wire1.endTransmission();
+
+}
+
+uint8_t BMX055::beginGyro (){
+
 
 	// Start I2C Transmission
 	Wire1.beginTransmission(BMX055_GYRO_ADDR);
@@ -435,6 +490,10 @@ uint8_t BMX055::begin(){
 	Wire1.write(0x00);
 	// Stop I2C Transmission
 	Wire1.endTransmission();
+
+}
+
+uint8_t BMX055::beginMagn(){
 
 	// Start I2C Transmission
 	Wire1.beginTransmission(BMX055_MAGN_ADDR);
@@ -483,7 +542,7 @@ uint8_t BMX055::begin(){
 	delay(300);
 }
 
-void BMX055::getAcceleration(int *x, int *y, int *z){
+void BMX055::getAcceleration(float *x, float *y, float *z, float *accTotal){
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -503,15 +562,119 @@ void BMX055::getAcceleration(int *x, int *y, int *z){
 	// Convert the data to 12-bits
 	int xAccl = ((_data[1] * 256) + (_data[0] & 0xF0)) / 16;
 	if (xAccl > 2047) xAccl -= 4096;
-	*x = xAccl;
+	*x = xAccl*accRange;
 
 	int yAccl = ((_data[3] * 256) + (_data[2] & 0xF0)) / 16;
 	if (yAccl > 2047) yAccl -= 4096;
-	*y = yAccl;
+	*y = yAccl*accRange;
 
 	int zAccl = ((_data[5] * 256) + (_data[4] & 0xF0)) / 16;
 	if (zAccl > 2047) zAccl -= 4096;
-	*z = zAccl;
+	*z = zAccl*accRange;
+
+	*accTotal = 9.81 * sqrt((sq(*x)+sq(*y)+sq(*z)));
+}
+
+float BMX055::getAccelerationX(){
+		for (int i = 0; i < 6; i++)
+	{
+		// Start I2C Transmission
+		Wire1.beginTransmission(BMX055_ACCL_ADDR);
+		// Select data register
+		Wire1.write((2 + i));
+		// Stop I2C Transmission
+		Wire1.endTransmission();
+		// Request 1 byte of data
+		Wire1.requestFrom(BMX055_ACCL_ADDR, 1);
+		// Read 6 bytes of data
+		// xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
+		if (Wire1.available() == 1) _data[i] = Wire1.read();
+	}
+
+	// Convert the data to 12-bits
+	int xAccl = ((_data[1] * 256) + (_data[0] & 0xF0)) / 16;
+	if (xAccl > 2047) xAccl -= 4096;
+	float x = xAccl*accRange;
+	return x;
+
+	}
+
+float BMX055::getAccelerationY(){
+			for (int i = 0; i < 6; i++)
+	{
+		// Start I2C Transmission
+		Wire1.beginTransmission(BMX055_ACCL_ADDR);
+		// Select data register
+		Wire1.write((2 + i));
+		// Stop I2C Transmission
+		Wire1.endTransmission();
+		// Request 1 byte of data
+		Wire1.requestFrom(BMX055_ACCL_ADDR, 1);
+		// Read 6 bytes of data
+		// xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
+		if (Wire1.available() == 1) _data[i] = Wire1.read();
+	}
+
+	int yAccl = ((_data[3] * 256) + (_data[2] & 0xF0)) / 16;
+	if (yAccl > 2047) yAccl -= 4096;
+	float y = yAccl*accRange;	
+	return y;
+	}
+
+float BMX055::getAccelerationZ(){
+				for (int i = 0; i < 6; i++)
+	{
+		// Start I2C Transmission
+		Wire1.beginTransmission(BMX055_ACCL_ADDR);
+		// Select data register
+		Wire1.write((2 + i));
+		// Stop I2C Transmission
+		Wire1.endTransmission();
+		// Request 1 byte of data
+		Wire1.requestFrom(BMX055_ACCL_ADDR, 1);
+		// Read 6 bytes of data
+		// xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
+		if (Wire1.available() == 1) _data[i] = Wire1.read();
+	}
+
+	int zAccl = ((_data[5] * 256) + (_data[4] & 0xF0)) / 16;
+	if (zAccl > 2047) zAccl -= 4096;
+	float z = zAccl*accRange;
+	return z;
+}
+
+float BMX055::getAccelerationTotal(){
+
+	for (int i = 0; i < 6; i++)
+	{
+		// Start I2C Transmission
+		Wire1.beginTransmission(BMX055_ACCL_ADDR);
+		// Select data register
+		Wire1.write((2 + i));
+		// Stop I2C Transmission
+		Wire1.endTransmission();
+		// Request 1 byte of data
+		Wire1.requestFrom(BMX055_ACCL_ADDR, 1);
+		// Read 6 bytes of data
+		// xAccl lsb, xAccl msb, yAccl lsb, yAccl msb, zAccl lsb, zAccl msb
+		if (Wire1.available() == 1) _data[i] = Wire1.read();
+	}
+
+	// Convert the data to 12-bits
+	int xAccl = ((_data[1] * 256) + (_data[0] & 0xF0)) / 16;
+	if (xAccl > 2047) xAccl -= 4096;
+	float x = xAccl*accRange;
+
+	int yAccl = ((_data[3] * 256) + (_data[2] & 0xF0)) / 16;
+	if (yAccl > 2047) yAccl -= 4096;
+	float y = yAccl*accRange;
+
+	int zAccl = ((_data[5] * 256) + (_data[4] & 0xF0)) / 16;
+	if (zAccl > 2047) zAccl -= 4096;
+	float z = zAccl*accRange;
+
+	float accTotal = 9.81 * sqrt((sq(x)+sq(y)+sq(z)));
+	return accTotal;
 }
 
 void BMX055::getMagnet(int *x, int *y, int *z){
@@ -600,6 +763,7 @@ long Ultrasonic::getDistance(void)
 
 void GPS::begin()
 {
+	delay(20);
 	Wire.begin();
 	gps = new TinyGPSPlus;
 }
@@ -627,6 +791,12 @@ float GPS::getSpeed()
 	return speed;
 }
 
+float GPS::getHdop()
+{
+	getGPS();
+	return hdop;
+}
+
 float GPS::getDate()
 {
 	getGPS();
@@ -651,9 +821,9 @@ void GPS::getGPS()
 					lng = gps->location.lng();
 					alt = gps->altitude.meters();
 					speed = gps->speed.kmph();
+					hdop = gps->hdop.hdop();
 					time = gps->time.value();
 					date = gps->date.value();
-
 				}
 }
 
@@ -673,6 +843,7 @@ void GPS::getGPS()
 */
 
 bool BMP280::begin() {
+	delay(20);
 	Wire.begin();
 	Wire.beginTransmission(118);
 
@@ -898,6 +1069,41 @@ if (reading != previous && millis() - time > debounce) {
 	previous = reading;
 	delay(50);
   return _wasPressed;
+}
+
+Microphone::Microphone (int pin){
+	_pin = pin;
+}
+
+void Microphone::begin (){
+
+}
+
+float Microphone::getValue(){
+unsigned long start = millis();  // Start des Messintervalls
+ unsigned int peakToPeak = 0;   // Abstand von maximalem zu minimalem Amplitudenausschlag
+ unsigned int signalMax = 0;    
+ unsigned int signalMin = 1023;
+
+ // Sammle Daten für 100 Millisekunden
+ while (millis() - start < sampleTime)
+    {
+    micValue = analogRead(_pin); // Messe den aktuellen Wert
+        if (micValue < 1023)  // sortiere Fehlmessungen aus, deren Werte über dem max Wert 1024 liegen 
+        {
+            if (micValue > signalMax)
+            {
+            signalMax = micValue;  // speichere den maximal gemessenen Wert
+            }
+        else if (micValue < signalMin)
+            {
+            signalMin = micValue;  // speichere den minimal gemessenen Wert
+            }
+        }
+    }
+ peakToPeak = signalMax - signalMin;  // max - min = Abstand von maximalem zu minimalem Amplitudenausschlag
+ double volts = (peakToPeak * 5.0) / 1023;  // wandle in Volt um
+ return volts;
 }
 
 

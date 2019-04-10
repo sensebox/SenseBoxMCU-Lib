@@ -14,7 +14,9 @@
 #include <TinyGPS++.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-//#include "SenseBoxIO.h"
+#include "senseBoxIO.h"
+#include <SD.h>
+#include "WebUtil.h"
 
 #define HDC1080_ADDR 0x40
 #define BMP280_ADDR 0x76
@@ -31,12 +33,16 @@ class Bee
 	public:
 	Bee();
 		uint8_t connectToWifi(char* ssid, char* password);
+		void startAP(char* ssid);
 		char* getSsid();
 		char* getPassword();
+		char* getIpAddress();
 	private:
 		char* nwid = "";
 		char* pw = "";
+		char ip[15];
 		int status = WL_IDLE_STATUS;
+		void storeIpAddress();
 };
 
 
@@ -104,12 +110,20 @@ class Ultrasonic
 class BMX055
 {
 	public:
-		uint8_t begin(void);
-		void getAcceleration(int *x, int *y, int *z);
+		uint8_t beginAcc(char range);
+		uint8_t beginGyro(void);
+		uint8_t beginMagn(void);
+		void getAcceleration(float *x, float *y, float *z, float *accTotal);
+		float getAccelerationX();
+		float getAccelerationY();
+		float getAccelerationZ();
+		float getAccelerationTotal();
 		void getMagnet(int *x, int *y, int *z);
 		void getRotation(int *x, int *y, int *z);
 	private:
 		unsigned int _data[6];
+		char _range;
+		float accRange;
 };
 
 class GPS
@@ -120,6 +134,7 @@ class GPS
 		float getLongitude();
 		float getAltitude();
 		float getSpeed();
+		float getHdop();
 		float getDate();
 		float getTime();
 	private:
@@ -129,6 +144,7 @@ class GPS
 		float lng = 0.0;
 		float alt = 0.0;
 		float speed = 0.0;
+		float hdop = 0.0;
 		float time = 0.0;
 		float date = 0.0;
 };
@@ -151,6 +167,20 @@ class Button
 	int _wasPressed = LOW;
 	int previous = LOW;
 	
+};
+
+class Microphone
+
+{
+	public: 
+	Microphone (int pin);
+		void begin();
+		float getValue();
+
+	private:
+	unsigned int _pin;
+	unsigned int micValue;
+	const int sampleTime = 100;
 };
 
 
