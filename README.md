@@ -31,6 +31,18 @@ Now you have acces to the functions:
 ```Arduino
 hdc.getTemperature();
 ```
+
+### Bee
+```Arduino 
+public:
+	Bee();
+		uint8_t connectToWifi(char* ssid, char* password);
+		void startAP(char* ssid);
+		char* getSsid();
+		char* getPassword();
+		char* getIpAddress();
+```		
+
 ### OpenSenseMap
 ```Arduino 
 Classname: OpenSenseMap
@@ -150,19 +162,6 @@ functions public:
 		bool getSwitch();
 		bool isPressed();
 		bool wasPressed();
-```
-
-### Webserver
-
-```Arduino
-
-Classname WebServer
-
-functions public: 
-		WebServer(); 
-		void initServerFromSD();
-		void initServer();
-		void readHTML();
 ```
 
 
