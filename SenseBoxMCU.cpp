@@ -1,7 +1,7 @@
 /*SenseBoxMCU.cpp
  * Library for easy usage of senseBox MCU
  * Created: 2018/04/10
- * last Modified: 2019/04/05 17:11:35
+ * last Modified: 2019/04/10 10:12:03
  * senseBox @ Institute for Geoinformatics WWU Münster
  */
 
@@ -36,6 +36,28 @@ uint8_t Bee::connectToWifi(char* ssid, char* password)
 	this->storeIpAddress();
 
 	return status;
+}
+
+void Bee::startAP(char* ssid){
+	nwid = ssid;
+  senseBoxIO.powerXB1(false); 
+  delay(250);
+  senseBoxIO.powerXB1(true);
+  if(WiFi.status() == WL_NO_SHIELD)
+  {
+    senseBoxIO.statusRed(); 
+    WiFi.end();
+    senseBoxIO.powerXB1(false);
+    return; 
+  }
+  int status = WiFi.beginAP(nwid);
+  if(status != WL_AP_LISTENING)
+  {
+    senseBoxIO.statusRed();
+    WiFi.end();
+    senseBoxIO.powerXB1(false);
+    return;
+  }	
 }
 
 char* Bee::getSsid()
@@ -211,89 +233,6 @@ void OpenSenseMap::setUploadInterval(unsigned int time)
 {
 	uploadInterval = time;
 }
-
-
-WebServer::WebServer(){
-	server = new WiFiServer(80);
-}
-
-
-void WebServer::startAP(char* ssid){
-	nwid = ssid;
-  senseBoxIO.powerXB1(false); 
-  delay(250);
-  senseBoxIO.powerXB1(true);
-  if(WiFi.status() == WL_NO_SHIELD)
-  {
-    senseBoxIO.statusRed(); 
-    WiFi.end();
-    senseBoxIO.powerXB1(false);
-    return; 
-  }
-  int status = WiFi.beginAP(nwid);
-  if(status != WL_AP_LISTENING)
-  {
-    senseBoxIO.statusRed();
-    WiFi.end();
-    senseBoxIO.powerXB1(false);
-    return;
-  }
-	
-}
-
-void WebServer::initServerFromSD(){
-	server->begin();
-	senseBoxIO.powerXB2(false); 
-  delay(250);
-  senseBoxIO.powerXB2(true);
-	SD.begin(28);
-	Serial.begin(9600);
-}
-
-void WebServer::initServer(){
-	server->begin();
-}
-
-
-void WebServer::readHTML(){
- 	WiFiClient client = server->available();
-  if (client) {
-    boolean currentLineIsBlank = true;
-    while (client.connected()) {
-      if (client.available()) {
-        char c = client.read(); 
-        if (c == '\n' && currentLineIsBlank) {
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");
-          client.println();
-          File webFile = SD.open("index.html");
-					Serial.println("loaded file");
-					if (!webFile){
-						Serial.println("unable to read file");
-					}
-          if (webFile) {
-          while (webFile.available()) {
-							Serial.println("read File");
-              client.write(webFile.read()); 
-							Serial.write(webFile.read());
-            }
-            webFile.close();
-          }
-          break;
-        }
-        if (c == '\n') {
-          currentLineIsBlank = true;
-        } else if (c != '\r') {
-          currentLineIsBlank = false;
-        }
-      }
-    }
-    delay(1);
-    client.stop();
-  } 
-}
-
 
 float SDS011::getPm10()
 {

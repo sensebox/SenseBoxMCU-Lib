@@ -152,5 +152,17 @@ functions public:
 		bool wasPressed();
 ```
 
+### Webserver
+
+```Arduino
+
+Classname WebServer
+
+functions public: 
+		WebServer(); 
+		void initServerFromSD();
+		void initServer();
+		void readHTML();
+```
 
 

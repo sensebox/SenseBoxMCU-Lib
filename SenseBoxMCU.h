@@ -33,6 +33,7 @@ class Bee
 	public:
 	Bee();
 		uint8_t connectToWifi(char* ssid, char* password);
+		void startAP(char* ssid);
 		char* getSsid();
 		char* getPassword();
 		char* getIpAddress();
@@ -60,21 +61,6 @@ class OpenSenseMap
 		Client* client = NULL;
 		Bee* xbee = NULL;
 };
-
-class WebServer
-{
-	public:
-		WebServer(); 
-		void startAP(char* ssid);
-		void initServerFromSD();
-		void initServer();
-		void readHTML();
-		private:
-		char* nwid = "";
-		WiFiServer* server = NULL;
-};
-
-
 
 class SDS011
 {
