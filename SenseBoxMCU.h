@@ -167,6 +167,7 @@ private:
 	int hour = 0;
 	int minute = 0;
 	int second = 0;
+	char tsBuffer[21];
 };
 
 class Button

@@ -1,7 +1,7 @@
 /*SenseBoxMCU.cpp
  * Library for easy usage of senseBox MCU
  * Created: 2018/04/10
- * last Modified: 2020/03/03 13:53:29
+ * last Modified: 2020/03/04 15:03:53
  * senseBox @ Institute for Geoinformatics WWU Münster
  */
 
@@ -955,7 +955,7 @@ float GPS::getDate()
 
 	if (gps->location.isValid())
 	{
-		time = gps->date.value();
+		date = gps->date.value();
 	}
 	return date;
 }
@@ -1031,7 +1031,6 @@ int GPS::getSecond()
 }
 char *GPS::getTimeStamp()
 {
-	char tsBuffer[21];
 
 	if (gps->location.isValid())
 	{
