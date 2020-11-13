@@ -885,7 +885,7 @@ long Ultrasonic::getDistance(void)
 	digitalWrite(_rx, LOW);
 	delayMicroseconds(2);
 	digitalWrite(_rx, HIGH);
-	delayMicroseconds(5);
+	delayMicroseconds(10);
 	digitalWrite(_rx, LOW);
 	pinMode(_tx, INPUT);
 	long duration;
