@@ -1,7 +1,7 @@
 /*SenseBoxMCU.cpp
  * Library for easy usage of senseBox MCU
  * Created: 2018/04/10
- * last Modified: 2020/03/04 15:03:53
+ * last Modified: 2021/01/21 14:56:32
  * senseBox @ Institute for Geoinformatics WWU Münster
  */
 
@@ -478,16 +478,96 @@ double VEML6070::getUvIntensity()
 	return (double)(uv) * (5.625);
 }
 
+int read_reg(byte address, uint8_t reg)
+{
+	int i = 0;
+
+	Wire.beginTransmission(address);
+	Wire.write(reg);
+	Wire.endTransmission();
+	Wire.requestFrom((uint8_t)address, (uint8_t)1);
+	delay(1);
+	if (Wire.available())
+		i = Wire.read();
+
+	return i;
+}
+
+void write_reg(byte address, uint8_t reg, uint8_t val)
+{
+	Wire.beginTransmission(address);
+	Wire.write(reg);
+	Wire.write(val);
+	Wire.endTransmission();
+}
+
+void Lightsensor::begin()
+{
+
+	unsigned int u = 0;
+	u = read_reg(LIGHTSENSOR_ADDR, 0x80 | 0x0A); //id register
+	if ((u & 0xF0) == 0xA0)						 // TSL45315
+	{
+		sensortype = 0; //TSL45315
+	}
+	else
+	{
+		sensortype = 1; //
+	}
+}
+
+unsigned long Lightsensor::getIlluminance()
+{
+	unsigned int u = 0, v = 0;
+	unsigned long l = 0;
+	if (sensortype == 0) // TSL45315
+	{
+		Serial.println("TSL45315");
+		write_reg(LIGHTSENSOR_ADDR, 0x80 | 0x00, 0x03); //control: power on
+		write_reg(LIGHTSENSOR_ADDR, 0x80 | 0x01, 0x02); //config: M=4 T=100ms
+		delay(120);
+		u = (read_reg(LIGHTSENSOR_ADDR, 0x80 | 0x04) << 0);	 //data low
+		u |= (read_reg(LIGHTSENSOR_ADDR, 0x80 | 0x05) << 8); //data high
+		l = u * 4;											 // calc lux
+	}
+	else if (sensortype == 1) //LTR-329ALS-01
+	{
+		u = read_reg(LIGHTSENSOR_ADDR, 0x86); //id register
+		if ((u & 0xF0) == 0xA0)				  // LTR-329ALS-01
+		{
+			Serial.println("LTR-329ALS-01");
+			write_reg(LIGHTSENSOR_ADDR, 0x80, 0x01); //gain=1, active mode
+			//dummy read
+			u = (read_reg(LIGHTSENSOR_ADDR, 0x88) << 0); //data low channel 1
+			u = (read_reg(LIGHTSENSOR_ADDR, 0x89) << 8); //data high channel 1
+			u = (read_reg(LIGHTSENSOR_ADDR, 0x8A) << 0); //data low channel 0
+			u = (read_reg(LIGHTSENSOR_ADDR, 0x8B) << 8); //data high channel 0
+			delay(100);
+			do
+			{
+				delay(10);
+				u = read_reg(LIGHTSENSOR_ADDR, 0x8C);
+			} while (u & 0x80);							  //wait for data ready
+			u = (read_reg(LIGHTSENSOR_ADDR, 0x88) << 0);  //data low channel 1
+			u |= (read_reg(LIGHTSENSOR_ADDR, 0x89) << 8); //data high channel 1
+			v = (read_reg(LIGHTSENSOR_ADDR, 0x8A) << 0);  //data low channel 0
+			v |= (read_reg(LIGHTSENSOR_ADDR, 0x8B) << 8); //data high channel 0
+			l = (u + v) / 2;
+		}
+	}
+	return (unsigned long)(l);
+}
+
 uint8_t TSL45315::begin()
 {
 	Wire.begin();
-	Wire.beginTransmission(TSL45315_ADDR);
+	Wire.beginTransmission(LIGHTSENSOR_ADDR);
 	Wire.write(0x80 | 0x00); //0x00 control reg
 	Wire.write(0x03);		 //power on
 	Wire.endTransmission();
 	delay(20);
 	Serial.println("Config...");
-	Wire.beginTransmission(TSL45315_ADDR);
+	Wire.beginTransmission(LIGHTSENSOR_ADDR);
 	Wire.write(0x80 | 0x01); //0x01 config reg
 	Wire.write(0x00);		 //M=1 IT=400ms
 	// Wire.write(0x01); //M=2 IT=200ms
@@ -500,10 +580,10 @@ unsigned long TSL45315::getIlluminance()
 	uint16_t l, h;
 	uint32_t lux;
 
-	Wire.beginTransmission(TSL45315_ADDR);
+	Wire.beginTransmission(LIGHTSENSOR_ADDR);
 	Wire.write(0x80 | 0x04); //0x04 reg datalow
 	Wire.endTransmission();
-	Wire.requestFrom(TSL45315_ADDR, 2); //request 2 bytes
+	Wire.requestFrom(LIGHTSENSOR_ADDR, 2); //request 2 bytes
 	l = Wire.read();
 	h = Wire.read();
 	while (Wire.available())

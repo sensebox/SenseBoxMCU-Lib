@@ -21,7 +21,7 @@
 #define HDC1080_ADDR 0x40
 #define BMP280_ADDR 0x76
 #define VEML6070_ADDR 0x38
-#define TSL45315_ADDR 0x29
+#define LIGHTSENSOR_ADDR 0x29
 #define BMX055_ACCL_ADDR 0x18
 #define BMX055_GYRO_ADDR 0x68
 #define BMX055_MAGN_ADDR 0x10
@@ -92,6 +92,16 @@ class VEML6070
 public:
 	uint8_t begin(void);
 	double getUvIntensity(void);
+};
+
+class Lightsensor
+{
+public:
+	void begin();
+	unsigned long getIlluminance(void);
+
+private:
+	int sensortype = 0; //0 for tsl - 1 for liteon sensor
 };
 
 class TSL45315
