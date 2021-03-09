@@ -2,7 +2,7 @@
 
 HDC1080 hdc;
 VEML6070 veml;
-Lightsensor lightsensor;
+Lightsensor lightsensor; //TSL45315 and LTR329 are both supported
 
 void setup()
 {
