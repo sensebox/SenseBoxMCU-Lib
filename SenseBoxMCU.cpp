@@ -1,7 +1,7 @@
 /*SenseBoxMCU.cpp
  * Library for easy usage of senseBox MCU
  * Created: 2018/04/10
- * last Modified: 2021/03/09 11:40:30
+ * last Modified: 2021/03/09 15:01:23
  * senseBox @ Institute for Geoinformatics WWU Münster
  */
 
@@ -995,7 +995,7 @@ long Ultrasonic::getDistance(void)
 	digitalWrite(_rx, LOW);
 	delayMicroseconds(2);
 	digitalWrite(_rx, HIGH);
-	delayMicroseconds(5);
+	delayMicroseconds(10);
 	digitalWrite(_rx, LOW);
 	pinMode(_tx, INPUT);
 	long duration;
