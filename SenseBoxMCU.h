@@ -30,6 +30,7 @@
 
 #define LIGHTSENSOR_ADDR 0x29
 #define LTR329_ALS_CONTR 0x80
+#define LTR329_MEAS_RATE 0x85
 #define LTR329_ALS_STATUS 0x8C
 #define LTR329_ALS_DATA_CH1_0 0x88
 #define LTR329_ALS_DATA_CH1_1 0x89
@@ -106,10 +107,10 @@ class Lightsensor
 {
 public:
 	void begin();
-	unsigned long getIlluminance(void);
+	unsigned int getIlluminance(void);
 
 private:
-	int sensortype = 0; //0 for tsl - 1 for liteon sensor
+	int sensortype = 0; //0 for tsl, 1 for liteon sensor
 };
 
 class TSL45315
