@@ -1,7 +1,7 @@
 /*SenseBoxMCU.cpp
  * Library for easy usage of senseBox MCU
  * Created: 2018/04/10
- * last Modified: 2021/03/09 15:01:23
+ * last Modified: 2021/05/07 12:09:31
  * senseBox @ Institute for Geoinformatics WWU Münster
  */
 
@@ -519,21 +519,23 @@ void Lightsensor::begin()
 	else
 	{
 		Serial.println("LTR329");
-		delay(100);	
+		delay(100);
 		//set measurement rate and integration time below
 		byte integrationTime = 0x01;
 		byte measurementRate = 0x03;
 		byte measurement = 0x00;
-	
+
 		// Perform sanity checks
-		if(integrationTime >= 0x07) {
+		if (integrationTime >= 0x07)
+		{
 			integrationTime = 0x00;
 		}
-		if(measurementRate >= 0x07) {
+		if (measurementRate >= 0x07)
+		{
 			measurementRate = 0x00;
 		}
 		measurement |= integrationTime << 3;
-		measurement |= measurementRate;		
+		measurement |= measurementRate;
 		write_reg(LIGHTSENSOR_ADDR, LTR329_MEAS_RATE, measurement);
 		write_reg(LIGHTSENSOR_ADDR, LTR329_ALS_CONTR, 0x01); //power on with default settings
 		delay(10);											 //Wait 10 ms (max) - wakeup time from standby
@@ -545,6 +547,8 @@ unsigned int Lightsensor::getIlluminance()
 {
 	unsigned int u = 0, v = 0;
 	unsigned int lux = 0;
+	unsigned int CH0, CH1;
+	byte error;
 	if (sensortype == 0) // TSL45315
 	{
 		u = (read_reg(LIGHTSENSOR_ADDR, 0x80 | 0x04) << 0);	 //data low
@@ -555,24 +559,26 @@ unsigned int Lightsensor::getIlluminance()
 	else if (sensortype == 1) //LTR-329ALS-01
 	{
 		byte high, low;
-	
+
 		// Check if sensor present for read
 		Wire.beginTransmission(LIGHTSENSOR_ADDR);
 		Wire.write(LTR329_DATA_CH0_0);
-		byte error = Wire.endTransmission();
+		error = Wire.endTransmission();
 
 		// Read two bytes (low and high) -> CH0 data
 		if (error == 0)
 		{
-			Wire.requestFrom(LIGHTSENSOR_ADDR,2);
+			Wire.requestFrom(LIGHTSENSOR_ADDR, 2);
 			if (Wire.available() == 2)
 			{
 				low = Wire.read();
 				high = Wire.read();
 				// Combine bytes into unsigned int
-				unsigned int CH0 = word(high,low);
+				CH0 = word(high, low);
 			}
-		} else return -1;
+		}
+		else
+			return -1;
 
 		// Check if sensor present for read
 		Wire.beginTransmission(LIGHTSENSOR_ADDR);
@@ -582,48 +588,55 @@ unsigned int Lightsensor::getIlluminance()
 		// Read two bytes (low and high) -> CH1 data
 		if (error == 0)
 		{
-			Wire.requestFrom(LIGHTSENSOR_ADDR,2);
+			Wire.requestFrom(LIGHTSENSOR_ADDR, 2);
 			if (Wire.available() == 2)
 			{
 				low = Wire.read();
 				high = Wire.read();
 				// Combine bytes into unsigned int
-				unsigned int CH1 = word(high,low);
+				CH1 = word(high, low);
 			}
-		} else return -1;
+		}
+		else
+			return -1;
 		byte integrationTime = 0x01;
 		byte gain = 0x00;
 		double ratio, d0, d1;
-		uint ALS_GAIN[8] = {1,2,4,8,1,1,48,96};
-		float ALS_INT[8] = {1.0,0.5,2.0,4.0,1.5,2.5,3.0,3.5};
+		uint ALS_GAIN[8] = {1, 2, 4, 8, 1, 1, 48, 96};
+		float ALS_INT[8] = {1.0, 0.5, 2.0, 4.0, 1.5, 2.5, 3.0, 3.5};
 		// Determine if either sensor saturated (0xFFFF)
 		// If so, abandon ship (calculation will not be accurate)
-		if ((CH0 == 0xFFFF) || (CH1 == 0xFFFF)) {
+		if ((CH0 == 0xFFFF) || (CH1 == 0xFFFF))
+		{
 			lux = 0.0;
 			return lux;
 		}
 
 		// Convert from unsigned integer to floating point
-		d0 = CH0; d1 = CH1;
+		d0 = CH0;
+		d1 = CH1;
 
 		// We will need the ratio for subsequent calculations
-		ratio = d1 / (d0+d1);
+		ratio = d1 / (d0 + d1);
 
 		// Determine lux per datasheet equations:
-		if (ratio < 0.45) {
+		if (ratio < 0.45)
+		{
 			lux = ((1.7743 * d0) + (1.1059 * d1)) / ALS_GAIN[gain] / ALS_INT[integrationTime];
 		}
 
-		else if (ratio < 0.64) {
+		else if (ratio < 0.64)
+		{
 			lux = ((4.2785 * d0) - (1.9548 * d1)) / ALS_GAIN[gain] / ALS_INT[integrationTime];
 		}
 
-		else if (ratio < 0.85) {
+		else if (ratio < 0.85)
+		{
 			lux = ((0.5926 * d0) + (0.1185 * d1)) / ALS_GAIN[gain] / ALS_INT[integrationTime];
 		}
 
-		else lux = 0;
-
+		else
+			lux = 0;
 	}
 	return lux;
 }
