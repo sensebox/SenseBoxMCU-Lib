@@ -1,3 +1,7 @@
+# Deprecation notice
+
+The Library is not maintained anymore. Please use the regular sensor Libaries integrated in the Board Support Package as usage of the senseBoxMCU Libraries makes it hard to extend your code with other libraries.
+
 # senseBox MCU Library
 
 This Library is for the [senseBox with MCU](https://sensebox.kaufen/product/sensebox-edu). The Library gives easy access to the following features/sensors:
@@ -14,8 +18,6 @@ This Library is for the [senseBox with MCU](https://sensebox.kaufen/product/sens
 ## Usage
 
 Install via Arduino Library Manager or copy it to your Arduino Library folder. Include to your Arduino Programm via ```#include "senseBoxMCU.h"```
-
-
 
 ## Classes and Functions
 The Library provides to following classes and functions. Create a new instance of the different classes to use the Functions, for example:
